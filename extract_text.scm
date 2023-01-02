@@ -30,6 +30,10 @@
   (to_bool gimp-item-is-text-layer id)
 )
 
+(define (item-is-group id)
+  (to_bool gimp-item-is-group id)
+)
+
 (define (to_list f id)
   (vector->list (cadr (f id)))
 )
@@ -82,7 +86,7 @@
 	)
       )
     )
-    ((= (car (gimp-item-is-group id)) TRUE)
+    ((item-is-group id)
       (for-each (lambda (id)
 	  (recurse_extract_text id stream visible extra)
 	)
