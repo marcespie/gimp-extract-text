@@ -63,15 +63,14 @@
     ((item-is-text-layer id)       ; is it a text layer?
       (if (want_text_info id visible)
 	(begin
-; this is tricky: either text layers are unchanged and they yield non-empty text
-; or they have markup, and they yield markup text
-; (we don't even try to clean that up)
 	  (if (= extra 1)
 	    (let (
 	      (coords (gimp-drawable-offsets id))
 	      )
 	      (display (string-append
-		"visible="
+	        "font="
+		(car (gimp-text-layer-get-font id))
+		" visible="
 		(if (item-is-visible id) "yes" "no")
 		" x="
 		(number->string (car coords))
@@ -80,6 +79,9 @@
 		": ") stream)
 	    )
 	  )
+; this is tricky: either text layers are unchanged and they yield non-empty text
+; or they have markup, and they yield markup text
+; (we don't even try to clean that up)
 	  (display (car (gimp-text-layer-get-text id)) stream)
 	  (display (car (gimp-text-layer-get-markup id)) stream)
 	  (newline stream)
