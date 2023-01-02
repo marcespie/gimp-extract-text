@@ -166,7 +166,14 @@
   (gimp-message "Finished")
 )
 
+(define (xcf_to_txt s) 
+  (string-append (substring s 0 (- (string-length s) 4)) ".txt")
+)
+
 (define (extract_text_current_image image text_filename visible extra)
+  (if (= (string-length text_filename) 0)
+     (set! text_filename (xcf_to_txt (car (gimp-image-get-filename image))))
+  )
   (with_file (lambda (stream)
 	  (extract_text_from_image image stream visible extra)
        )
