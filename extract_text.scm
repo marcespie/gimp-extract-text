@@ -13,10 +13,39 @@
 ; ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 ; OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+; Helpers for a decent interface for gimp functions
+(define (get f id)
+	(car (f id))
+)
+
+(define (to_bool f p)
+  (= (get f p) TRUE)
+)
+
+(define (item-is-visible id)
+  (to_bool gimp-item-get-visible id)
+)
+
+(define (item-is-text-layer id)
+  (to_bool gimp-item-is-text-layer id)
+)
+
+(define (to_list f id)
+  (vector->list (cadr (f id)))
+)
+
+(define (item-get-children id)
+  (to_list gimp-item-get-children id)
+)
+
+(define (image-get-layers id)
+  (to_list gimp-image-get-layers id)
+)
+
 ; Helper for only grabbing visible text layers, optionally
 (define (want_text_info id visible)
   (if (= visible 1)
-    (if (= (car (gimp-item-get-visible id)) TRUE)
+    (if (item-is-visible id)
       #t
       #f
     )
@@ -27,7 +56,7 @@
 ; Extract all text data we can from a layer AND its children if applicable
 (define (recurse_extract_text id stream visible)
   (cond 
-    ((= (car (gimp-item-is-text-layer id)) TRUE)       ; is it a text layer?
+    ((item-is-text-layer id)       ; is it a text layer?
       (if (want_text_info id visible)
 	(begin
 ; this is tricky: either text layers are unchanged and they yield non-empty text
@@ -43,7 +72,7 @@
       (for-each (lambda (id)
 	  (recurse_extract_text id stream visible)
 	)
-	(vector->list (cadr (gimp-item-get-children id)))
+	(item-get-children id)
       )
     )
   )
@@ -57,7 +86,7 @@
   (for-each (lambda (id)
       (recurse_extract_text id stream visible)
     )
-    (vector->list (cadr (gimp-image-get-layers image)))
+    (image-get-layers image)
   )
   (newline stream)
 )
