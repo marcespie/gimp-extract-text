@@ -79,7 +79,7 @@
 )
 
 ; Extract text from an Image
-(define (extract_text_from_image image stream visible)
+(define (extract_text_from_image image stream visible extra)
   ; output the file name
   (display (car (gimp-image-get-filename image)) stream)
   (newline stream)
@@ -93,12 +93,12 @@
 
 
 ; Extract text from a single file
-(define (extract_text_from_file filename stream visible)
+(define (extract_text_from_file filename stream visible extra)
   (let (
       ; load the file  
       (image (car (gimp-file-load RUN-NONINTERACTIVE filename filename)))
     )
-    (extract_text_from_image image stream visible)
+    (extract_text_from_image image stream visible extra)
     (gimp-image-delete image)
   )
 )
@@ -115,9 +115,9 @@
   )
 )
 
-(define (extract_text image_filename text_filename visible)
+(define (extract_text image_filename text_filename visible extra)
   (with_file (lambda (stream)
-      (extract_text_from_file image_filename stream visible)
+      (extract_text_from_file image_filename stream visible extra)
     )
     text_filename
   )
@@ -130,10 +130,10 @@
   )
 )
 
-(define (extract_text_batch dir pattern text_filename visible)
+(define (extract_text_batch dir pattern text_filename visible extra)
   (with_file (lambda (stream)
 	  (for-each (lambda (image_filename)
-	      (extract_text_from_file image_filename stream visible)
+	      (extract_text_from_file image_filename stream visible extra)
 	    )
 	    (cadr (file-glob (compose dir pattern) 1))
 	  )
@@ -143,9 +143,9 @@
   (gimp-message "Finished")
 )
 
-(define (extract_text_current_image image text_filename visible)
+(define (extract_text_current_image image text_filename visible extra)
   (with_file (lambda (stream)
-	  (extract_text_from_image image stream visible)
+	  (extract_text_from_image image stream visible extra)
        )
      text_filename
   )
@@ -163,6 +163,7 @@
   SF-FILENAME	_"Image file name" ""
   SF-FILENAME	_"Output file name" ""
   SF-TOGGLE	_"Only visible layers" TRUE
+  SF-TOGGLE	_"Extra annotations" FALSE
 )
 
 (script-fu-register 
@@ -178,6 +179,7 @@
   SF-STRING	_"File pattern" "*.xcf"
   SF-FILENAME	_"Output file name" ""
   SF-TOGGLE	_"Only visible layers" TRUE
+  SF-TOGGLE	_"Extra annotations" FALSE
 )
 
 (script-fu-register 
@@ -191,6 +193,7 @@
   SF-IMAGE	_"The image" 0
   SF-FILENAME	_"Output file name" ""
   SF-TOGGLE	_"Only visible layers" TRUE
+  SF-TOGGLE	_"Extra annotations" FALSE
 )
 
 (script-fu-menu-register "extract_text"
