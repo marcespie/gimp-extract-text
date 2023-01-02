@@ -54,7 +54,7 @@
 )
 
 ; Extract all text data we can from a layer AND its children if applicable
-(define (recurse_extract_text id stream visible)
+(define (recurse_extract_text id stream visible extra)
   (cond 
     ((item-is-text-layer id)       ; is it a text layer?
       (if (want_text_info id visible)
@@ -62,6 +62,20 @@
 ; this is tricky: either text layers are unchanged and they yield non-empty text
 ; or they have markup, and they yield markup text
 ; (we don't even try to clean that up)
+	  (if (= extra 1)
+	    (let (
+	      (coords (gimp-drawable-offsets id))
+	      )
+	      (display (string-append
+		"visible="
+		(if (item-is-visible id) "yes" "no")
+		" x="
+		(number->string (car coords))
+		" y="
+		(number->string (cadr coords))
+		": ") stream)
+	    )
+	  )
 	  (display (car (gimp-text-layer-get-text id)) stream)
 	  (display (car (gimp-text-layer-get-markup id)) stream)
 	  (newline stream)
@@ -70,7 +84,7 @@
     )
     ((= (car (gimp-item-is-group id)) TRUE)
       (for-each (lambda (id)
-	  (recurse_extract_text id stream visible)
+	  (recurse_extract_text id stream visible extra)
 	)
 	(item-get-children id)
       )
@@ -81,10 +95,13 @@
 ; Extract text from an Image
 (define (extract_text_from_image image stream visible extra)
   ; output the file name
+  (if (= extra 1)
+    (display "file=" stream)
+  )
   (display (car (gimp-image-get-filename image)) stream)
   (newline stream)
   (for-each (lambda (id)
-      (recurse_extract_text id stream visible)
+      (recurse_extract_text id stream visible extra)
     )
     (image-get-layers image)
   )
