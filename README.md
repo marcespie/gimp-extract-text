@@ -8,6 +8,6 @@ each filename is preceded by
 file=
 
 and each text layer with
-visible=yes/no x=... y=...:
+font=... visible=yes/no x=... y=...:
 
 (so that you can try to sort things if you wish with postprocessing)
