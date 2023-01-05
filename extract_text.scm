@@ -18,38 +18,38 @@
 	(car (f id))
 )
 
-(define (to_bool f p)
+(define (to-bool f p)
   (= (get f p) TRUE)
 )
 
-(define (item-is-visible id)
-  (to_bool gimp-item-get-visible id)
+(define (item-visible? id)
+  (to-bool gimp-item-get-visible id)
 )
 
-(define (item-is-text-layer id)
-  (to_bool gimp-item-is-text-layer id)
+(define (item-text-layer? id)
+  (to-bool gimp-item-is-text-layer id)
 )
 
-(define (item-is-group id)
-  (to_bool gimp-item-is-group id)
+(define (item-group? id)
+  (to-bool gimp-item-is-group id)
 )
 
-(define (to_list f id)
+(define (to-list f id)
   (vector->list (cadr (f id)))
 )
 
 (define (item-get-children id)
-  (to_list gimp-item-get-children id)
+  (to-list gimp-item-get-children id)
 )
 
 (define (image-get-layers id)
-  (to_list gimp-image-get-layers id)
+  (to-list gimp-image-get-layers id)
 )
 
 ; Helper for only grabbing visible text layers, optionally
-(define (want_text_info id visible)
+(define (want-text-info? id visible)
   (if (= visible 1)
-    (if (item-is-visible id)
+    (if (item-visible? id)
       #t
       #f
     )
@@ -58,12 +58,12 @@
 )
 
 ; Extract all text data we can from a layer AND its children if applicable
-(define (recurse_extract_text id stream visible extra)
+(define (recurse-extract-text id stream visible extra)
   (cond 
-    ((item-is-text-layer id)       ; is it a text layer?
-      (if (want_text_info id visible)
+    ((item-text-layer? id)       ; is it a text layer?
+      (when (want-text-info? id visible)
 	(begin
-	  (if (= extra 1)
+	  (when (= extra 1)
 	    (let (
 	      (coords (gimp-drawable-offsets id))
 	      )
@@ -71,7 +71,7 @@
 	        "font="
 		(car (gimp-text-layer-get-font id))
 		" visible="
-		(if (item-is-visible id) "yes" "no")
+		(if (item-visible? id) "yes" "no")
 		" x="
 		(number->string (car coords))
 		" y="
@@ -88,9 +88,9 @@
 	)
       )
     )
-    ((item-is-group id)
+    ((item-group? id)
       (for-each (lambda (id)
-	  (recurse_extract_text id stream visible extra)
+	  (recurse-extract-text id stream visible extra)
 	)
 	(item-get-children id)
       )
@@ -99,15 +99,15 @@
 )
 
 ; Extract text from an Image
-(define (extract_text_from_image image stream visible extra)
+(define (extract-text-from-image image stream visible extra)
   ; output the file name
-  (if (= extra 1)
+  (when (= extra 1)
     (display "file=" stream)
   )
   (display (car (gimp-image-get-filename image)) stream)
   (newline stream)
   (for-each (lambda (id)
-      (recurse_extract_text id stream visible extra)
+      (recurse-extract-text id stream visible extra)
     )
     (image-get-layers image)
   )
@@ -116,18 +116,18 @@
 
 
 ; Extract text from a single file
-(define (extract_text_from_file filename stream visible extra)
+(define (extract-text-from-file filename stream visible extra)
   (let (
       ; load the file  
       (image (car (gimp-file-load RUN-NONINTERACTIVE filename filename)))
     )
-    (extract_text_from_image image stream visible extra)
+    (extract-text-from-image image stream visible extra)
     (gimp-image-delete image)
   )
 )
 
 ; helper to define the actual output-stream
-(define (with_file p filename)
+(define (with-file p filename)
   ; XXX we need let so we can close the stream
   (let (
       (stream 0)
@@ -138,9 +138,9 @@
   )
 )
 
-(define (extract_text image_filename text_filename visible extra)
-  (with_file (lambda (stream)
-      (extract_text_from_file image_filename stream visible extra)
+(define (extract-text image_filename text_filename visible extra)
+  (with-file (lambda (stream)
+      (extract-text-from-file image_filename stream visible extra)
     )
     text_filename
   )
@@ -153,10 +153,10 @@
   )
 )
 
-(define (extract_text_batch dir pattern text_filename visible extra)
-  (with_file (lambda (stream)
+(define (extract-text-batch dir pattern text_filename visible extra)
+  (with-file (lambda (stream)
 	  (for-each (lambda (image_filename)
-	      (extract_text_from_file image_filename stream visible extra)
+	      (extract-text-from-file image_filename stream visible extra)
 	    )
 	    (cadr (file-glob (compose dir pattern) 1))
 	  )
@@ -170,19 +170,19 @@
   (string-append (substring s 0 (- (string-length s) 4)) ".txt")
 )
 
-(define (extract_text_current_image image text_filename visible extra)
-  (if (= (string-length text_filename) 0)
+(define (extract-text-current-image image text_filename visible extra)
+  (when (= (string-length text_filename) 0)
      (set! text_filename (xcf_to_txt (car (gimp-image-get-filename image))))
   )
-  (with_file (lambda (stream)
-	  (extract_text_from_image image stream visible extra)
+  (with-file (lambda (stream)
+	  (extract-text-from-image image stream visible extra)
        )
      text_filename
   )
 )
 
 (script-fu-register 
-  "extract_text"
+  "extract-text"
   _"Extract Text from file..."
   "Extract all text information from text layers \
   of a given image file"
@@ -197,7 +197,7 @@
 )
 
 (script-fu-register 
-  "extract_text_batch"
+  "extract-text-batch"
   _"Extract Text from files..."
   "Extract all text information from text layers \
   of a bunch of image files"
@@ -213,7 +213,7 @@
 )
 
 (script-fu-register 
-  "extract_text_current_image"
+  "extract-text-current-image"
   _"Extract Text from current image..."
   "Extract all text information from the current active image"
   "Marc Espie"
@@ -226,11 +226,11 @@
   SF-TOGGLE	_"Extra annotations" FALSE
 )
 
-(script-fu-menu-register "extract_text"
+(script-fu-menu-register "extract-text"
 	_"<Image>/Tools")
 
-(script-fu-menu-register "extract_text_batch"
+(script-fu-menu-register "extract-text-batch"
 	_"<Image>/Tools")
 
-(script-fu-menu-register "extract_text_current_image"
+(script-fu-menu-register "extract-text-current-image"
 	_"<Image>/Tools")
