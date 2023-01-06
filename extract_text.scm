@@ -15,7 +15,7 @@
 
 ; Helpers for a decent interface for gimp functions
 (define (get f id)
-	(car (f id))
+  (car (f id))
 )
 
 (define (to-bool f p)
@@ -49,13 +49,8 @@
 ; Helper for only grabbing visible text layers, optionally
 (define (want-text-info? id visible)
   (if (= visible 1)
-    (if (item-visible? id)
-      #t
-      #f
-    )
-    #t
-  )
-)
+    (if (item-visible? id) #t #f)
+    #t))
 
 ; Extract all text data we can from a layer AND its children if applicable
 (define (recurse-extract-text id stream visible extra)
@@ -166,18 +161,18 @@
   (gimp-message "Finished")
 )
 
-(define (xcf_to_txt s) 
+(define (xcf-to-txt s) 
   (string-append (substring s 0 (- (string-length s) 4)) ".txt")
 )
 
 (define (extract-text-current-image image text_filename visible extra)
-  (when (= (string-length text_filename) 0)
-     (set! text_filename (xcf_to_txt (car (gimp-image-get-filename image))))
-  )
   (with-file (lambda (stream)
 	  (extract-text-from-image image stream visible extra)
        )
-     text_filename
+      (if (= (string-length text_filename) 0)
+	 (xcf-to-txt (car (gimp-image-get-filename image)))
+	 text_filename
+      )
   )
 )
 
