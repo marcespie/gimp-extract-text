@@ -123,13 +123,20 @@
 
 ; helper to define the actual output-stream
 (define (with-file p filename)
-  ; XXX we need let so we can close the stream
   (let (
-      (stream 0)
+      (stream (open-output-file filename))
     )
-    (set! stream (open-output-file filename))
-    (p stream)
-    (close-output-port stream) 
+    (if (output-port? stream)
+      (begin
+	(p stream)
+	(close-output-port stream) 
+	#t
+      )
+      (begin
+	(gimp-message (string-append "Error opening " filename))
+	#f
+      )
+    )
   )
 )
 
@@ -149,16 +156,18 @@
 )
 
 (define (extract-text-batch dir pattern text_filename visible extra)
-  (with-file (lambda (stream)
-	  (for-each (lambda (image_filename)
-	      (extract-text-from-file image_filename stream visible extra)
+  (when
+    (with-file (lambda (stream)
+	    (for-each (lambda (image_filename)
+		(extract-text-from-file image_filename stream visible extra)
+	      )
+	      (cadr (file-glob (compose dir pattern) 1))
 	    )
-	    (cadr (file-glob (compose dir pattern) 1))
 	  )
-	)
-    text_filename
+      text_filename
+    )
+    (gimp-message "Finished")
   )
-  (gimp-message "Finished")
 )
 
 (define (xcf-to-txt s) 
