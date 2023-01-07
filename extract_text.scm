@@ -133,18 +133,18 @@
 	#t
       )
       (begin
-	(gimp-message (string-append "Error opening " filename))
+	(gimp-message (string-append _"Error opening " filename))
 	#f
       )
     )
   )
 )
 
-(define (extract-text image_filename text_filename visible extra)
+(define (extract-text image-filename text-filename visible extra)
   (with-file (lambda (stream)
-      (extract-text-from-file image_filename stream visible extra)
+      (extract-text-from-file image-filename stream visible extra)
     )
-    text_filename
+    text-filename
   )
 )
 
@@ -155,18 +155,18 @@
   )
 )
 
-(define (extract-text-batch dir pattern text_filename visible extra)
+(define (extract-text-batch dir pattern text-filename visible extra)
   (when
     (with-file (lambda (stream)
-	    (for-each (lambda (image_filename)
-		(extract-text-from-file image_filename stream visible extra)
+	    (for-each (lambda (image-filename)
+		(extract-text-from-file image-filename stream visible extra)
 	      )
 	      (cadr (file-glob (compose dir pattern) 1))
 	    )
 	  )
-      text_filename
+      text-filename
     )
-    (gimp-message "Finished")
+    (gimp-message _"Finished")
   )
 )
 
@@ -174,13 +174,13 @@
   (string-append (substring s 0 (- (string-length s) 4)) ".txt")
 )
 
-(define (extract-text-current-image image text_filename visible extra)
+(define (extract-text-current-image image text-filename visible extra)
   (with-file (lambda (stream)
 	  (extract-text-from-image image stream visible extra)
        )
-      (if (= (string-length text_filename) 0)
+      (if (= (string-length text-filename) 0)
 	 (xcf-to-txt (car (gimp-image-get-filename image)))
-	 text_filename
+	 text-filename
       )
   )
 )
